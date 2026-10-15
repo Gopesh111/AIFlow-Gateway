@@ -1,0 +1,77 @@
+version: "3.8"
+
+services:
+  gateway_api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: aiflow_gateway_api
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - ENVIRONMENT=production
+      - DEBUG=false
+      - DATABASE_URL=postgresql+asyncpg://aiflow:aiflow_secret@postgres_db:5432/aiflow_db
+      - REDIS_URL=redis://redis_cache:6379/0
+      - JWT_SECRET_KEY=super-secret-jwt-signing-key-change-in-production
+      - ADMIN_API_KEY=af_master_admin_secret_key_prod_2026
+      - SEMANTIC_CACHE_ENABLED=true
+      - SEMANTIC_CACHE_SIMILARITY_THRESHOLD=0.92
+      - SEMANTIC_CACHE_TTL_SECONDS=3600
+    depends_on:
+      postgres_db:
+        condition: service_healthy
+      redis_cache:
+        condition: service_healthy
+    volumes:
+      - .:/app
+    networks:
+      - aiflow_network
+
+  postgres_db:
+    image: postgres:16-alpine
+    container_name: aiflow_postgres
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: aiflow
+      POSTGRES_PASSWORD: aiflow_secret
+      POSTGRES_DB: aiflow_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U aiflow -d aiflow_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - aiflow_network
+
+  redis_cache:
+    image: redis:7-alpine
+    container_name: aiflow_redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes --maxmemory 512mb --maxmemory-policy volatile-lru
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - aiflow_network
+
+networks:
+  aiflow_network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local

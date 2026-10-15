@@ -1,0 +1,48 @@
+# Python bytecode & cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+ENV/
+
+# Environment files & Secrets
+.env
+*.local
+*.secret
+
+# Database & Persistent storage
+*.sqlite
+*.sqlite3
+*.db
+pgdata/
+redisdata/
+
+# Testing & Coverage
+.pytest_cache/
+.coverage
+htmlcov/
+coverage.xml
+.hypothesis/
+
+# Type Checking & Linters
+.mypy_cache/
+.ruff_cache/
+.dmypy.json
+dmypy.json
+
+# IDE & OS
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Logs & Dumps
+*.log
+logs/
+locust_reports/
